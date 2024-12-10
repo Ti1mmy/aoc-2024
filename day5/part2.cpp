@@ -37,13 +37,48 @@ int main() {
                 if (rules[update[j]].find(update[i]) != rules[update[j]].end()) conflict = true;
             }
         }
-        if (conflict) problematic.emplace_back(update);
-    }
+        if (!conflict) continue;
 
-    // todo fix problematic
+        unordered_set<int> update_set;
+        for (int x: update) update_set.emplace(x);
 
-    for (auto& p: problematic) {
-        // ... do stuff.
+        // fix [update]
+
+        vector<int> fixed;
+        unordered_set<int> added; // O(1) expected lookup
+        unordered_map<int, vector<int>> filtered_rules;
+
+        for (int x: update) {
+            vector<int> rule;
+            for (int y: rules[x]) {
+                if (update_set.find(y) != update_set.end()) rule.emplace_back(y);
+            }
+            filtered_rules[x] = rule;
+        }
+
+        while (fixed.size() < update.size()) {
+            for (int x: update) {
+                if (added.find(x) != added.end()) continue; // already added
+                
+                bool can_add = true;
+                for (int y: filtered_rules[x]) {
+                    if (added.find(y) == added.end()) {
+                        can_add = false;
+                        break;
+                    }
+                }
+                if (can_add) {
+                    added.emplace(x);
+                    fixed.emplace_back(x);
+                }
+            }
+        }
+
+        cout << "Fixed: " << endl;
+        for (int x: fixed) cout << x << " ";
+        cout << endl;
+
+        ans += fixed[fixed.size() / 2];
     }
     cout << ans << endl;
     return 0;
